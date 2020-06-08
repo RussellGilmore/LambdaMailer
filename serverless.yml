@@ -1,0 +1,41 @@
+service: 
+  name: lambda-mail-service
+
+plugins:
+  - serverless-mocha-plugin
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: default
+  region: us-east-1
+
+
+functions:
+  queue:
+    handler: handlers/mail-handlers/queue.handler
+    role: arn:aws:iam::FILL_IN:role/mail-queue-russ
+    events:
+      - http:
+          path: mailer
+          integration: lambda
+          method: post
+  dequeue:
+    handler: handlers/mail-handlers/dequeue.handler
+    role: arn:aws:iam::FILL_IN:role/mail-dequeue-russ
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MailQueue
+              - Arn
+  mailer:
+    handler: handlers/mail-handlers/mailer.handler
+    role: arn:aws:iam::FILL_IN:role/mail-dispatch-russ
+
+resources:
+  Resources:
+    MailQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "MailQueue"
